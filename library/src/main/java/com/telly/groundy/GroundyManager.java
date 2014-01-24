@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+
 import java.util.List;
 
 /**
@@ -89,6 +90,16 @@ public final class GroundyManager {
     cancelTasks(context, GroundyService.class, groupId, reason, cancelListener);
   }
 
+  public static void cancelTasksByGroup(Context context, Class<? extends GroundyTask> task,
+      int groupId, CancelListener cancelListener) {
+    cancelTasksByGroup(context, task, groupId, GroundyTask.CANCEL_BY_GROUP, cancelListener);
+  }
+
+  public static void cancelTasksByGroup(Context context, Class<? extends GroundyTask> task,
+      int groupId, int reason, CancelListener cancelListener) {
+    cancelTasks(context, GroundyService.class, task, groupId, reason, cancelListener);
+  }
+
   /**
    * Cancels all tasks of the specified group w/ the specified reason.
    *
@@ -121,8 +132,15 @@ public final class GroundyManager {
    * @param cancelListener callback for cancel result
    */
   public static void cancelTasks(final Context context,
-      Class<? extends GroundyService> groundyServiceClass, final int groupId, final int reason,
-      final CancelListener cancelListener) {
+      Class<? extends GroundyService> groundyServiceClass, int groupId, int reason,
+      CancelListener cancelListener) {
+    cancelTasks(context, groundyServiceClass, null, groupId, reason, cancelListener);
+  }
+
+  public static void cancelTasks(Context context,
+      Class<? extends GroundyService> groundyServiceClass,
+      final Class<? extends GroundyTask> task, final int groupId,
+      final int reason, final CancelListener cancelListener) {
     if (groupId <= 0) {
       throw new IllegalStateException("Group id must be greater than zero");
     }
@@ -130,7 +148,7 @@ public final class GroundyManager {
       @Override
       protected void onGroundyServiceBound(GroundyService.GroundyServiceBinder binder) {
         GroundyService.CancelGroupResponse cancelGroupResponse =
-            binder.cancelTasks(groupId, reason);
+            binder.cancelTasks(task, groupId, reason);
         if (cancelListener != null) {
           cancelListener.onCancelResult(groupId, cancelGroupResponse);
         }

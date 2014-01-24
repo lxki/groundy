@@ -244,7 +244,8 @@ public class GroundyService extends Service {
    * @param reason  reason to cancel this group
    * @return number of tasks cancelled
    */
-  private CancelGroupResponse cancelTasks(int groupId, int reason) {
+  private CancelGroupResponse cancelTasks(Class<? extends GroundyTask> task,
+                                          int groupId, int reason) {
     if (groupId == DEFAULT_GROUP_ID) {
       throw new IllegalStateException("Cannot use 0 when cancelling tasks by group id");
     }
@@ -257,9 +258,6 @@ public class GroundyService extends Service {
           + "If your service gets killed unpredictable behavior can happen.");
     }
 
-    // prevent current scheduled tasks with this group id from executing
-    mGroundyHandler.removeMessages(groupId);
-
     Set<Long> notExecutedTasks = new HashSet<Long>();
     Set<Long> interruptedTasks = new HashSet<Long>();
     if (mTasksSet.isEmpty()) {
@@ -271,7 +269,8 @@ public class GroundyService extends Service {
       Set<Long> taskIdSet = mTasksSet.keySet();
       for (Long taskId : taskIdSet) {
         GroundyTask groundyTask = mTasksSet.get(taskId);
-        if (groundyTask.getGroupId() == groupId) {
+        if ((task == null || task == groundyTask.getClass()) &&
+            groundyTask.getGroupId() == groupId) {
           if (!groundyTask.alreadyExecuted()) { // value didn't even run
             notExecutedTasks.add(taskId);
           } else { // value was already created and executed
@@ -315,16 +314,10 @@ public class GroundyService extends Service {
     }
 
     synchronized (mTasksSet) {
-      Set<Integer> alreadyStopped = new HashSet<Integer>();
       for (Map.Entry<Long, GroundyTask> taskEntry : mTasksSet.entrySet()) {
         GroundyTask task = taskEntry.getValue();
         if (task != null) {
           task.stopTask(quittingReason);
-          final int groupId = task.getGroupId();
-          if (groupId != DEFAULT_GROUP_ID && !alreadyStopped.contains(groupId)) {
-            mGroundyHandler.removeMessages(task.getGroupId());
-            alreadyStopped.add(groupId);
-          }
         }
       }
       mTasksSet.clear();
@@ -507,8 +500,8 @@ public class GroundyService extends Service {
      * @param reason  reason to cancel this group
      * @return number of cancelled tasks (before they were ran)
      */
-    CancelGroupResponse cancelTasks(int groupId, int reason) {
-      return GroundyService.this.cancelTasks(groupId, reason);
+    CancelGroupResponse cancelTasks(Class<? extends GroundyTask> task, int groupId, int reason) {
+      return GroundyService.this.cancelTasks(task, groupId, reason);
     }
 
     /**
