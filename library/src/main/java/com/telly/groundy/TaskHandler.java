@@ -32,6 +32,9 @@ public interface TaskHandler extends Parcelable {
   /** @return the associated value id */
   long getTaskId();
 
+  /** @return the associated group id */
+  int getGroupId();
+
   /**
    * Cancels this value if possible.
    *

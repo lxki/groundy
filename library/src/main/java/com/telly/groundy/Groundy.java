@@ -277,6 +277,10 @@ public final class Groundy implements Parcelable {
     return mId;
   }
 
+  int getGroupId() {
+    return mGroupId;
+  }
+
   Class<? extends GroundyService> getGroundyServiceClass() {
     return mGroundyClass;
   }
