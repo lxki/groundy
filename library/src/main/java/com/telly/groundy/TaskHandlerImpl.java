@@ -65,6 +65,10 @@ class TaskHandlerImpl implements TaskHandler {
     return mGroundy.getId();
   }
 
+  @Override public int getGroupId() {
+    return mGroundy.getGroupId();
+  }
+
   @SuppressWarnings("UnusedDeclaration")
   public static final Creator<TaskHandlerImpl> CREATOR = new Creator<TaskHandlerImpl>() {
     @Override public TaskHandlerImpl createFromParcel(Parcel source) {

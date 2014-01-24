@@ -30,13 +30,15 @@ import android.os.ResultReceiver;
 class AttachedTaskHandlerImpl implements TaskHandler {
 
   private final long mId;
+  private final int mGroupId;
   private final Class<? extends GroundyService> mGroundyServiceClass;
   private final CallbacksReceiver mCallbacksReceiver;
   private final Class<? extends GroundyTask> mGroundyTaskClass;
 
-  AttachedTaskHandlerImpl(long id, Class<? extends GroundyService> groundyServiceClass,
+  AttachedTaskHandlerImpl(long id, int groupId, Class<? extends GroundyService> groundyServiceClass,
       CallbacksReceiver callbacksReceiver, Class<? extends GroundyTask> groundyTaskClass) {
     mId = id;
+    mGroupId = groupId;
     mGroundyServiceClass = groundyServiceClass;
     mCallbacksReceiver = callbacksReceiver;
     mGroundyTaskClass = groundyTaskClass;
@@ -69,6 +71,10 @@ class AttachedTaskHandlerImpl implements TaskHandler {
     return mId;
   }
 
+  @Override public int getGroupId() {
+    return mGroupId;
+  }
+
   @SuppressWarnings("UnusedDeclaration")
   public static final Creator<AttachedTaskHandlerImpl> CREATOR =
       new Creator<AttachedTaskHandlerImpl>() {
@@ -76,6 +82,7 @@ class AttachedTaskHandlerImpl implements TaskHandler {
           //noinspection unchecked
           Class groundyTaskClass = (Class) source.readSerializable();
           long id = source.readLong();
+          int groupId = source.readInt();
 
           boolean hadReceiver = source.readByte() == 1;
 
@@ -90,8 +97,8 @@ class AttachedTaskHandlerImpl implements TaskHandler {
           Class groundyServiceClass = (Class) source.readSerializable();
 
           //noinspection unchecked
-          return new AttachedTaskHandlerImpl(id, groundyServiceClass,
-              receiver, groundyTaskClass);
+          return new AttachedTaskHandlerImpl(id, groupId,
+              groundyServiceClass, receiver, groundyTaskClass);
         }
 
         @Override public AttachedTaskHandlerImpl[] newArray(int size) {
@@ -106,6 +113,7 @@ class AttachedTaskHandlerImpl implements TaskHandler {
   @Override public void writeToParcel(Parcel dest, int flags) {
     dest.writeSerializable(mGroundyTaskClass);
     dest.writeLong(mId);
+    dest.writeInt(mGroupId);
     dest.writeByte((byte) (mCallbacksReceiver == null ? 0 : 1));
     if (mCallbacksReceiver != null) {
       dest.writeParcelable(mCallbacksReceiver, flags);

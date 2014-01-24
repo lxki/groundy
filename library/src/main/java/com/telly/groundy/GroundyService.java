@@ -230,8 +230,8 @@ public class GroundyService extends Service {
           groundyTask.appendReceiver(receiver);
 
           AttachedTaskHandlerImpl taskHandler =
-              new AttachedTaskHandlerImpl(groundyTask.getId(), GroundyService.this.getClass(),
-                  receiver, task);
+              new AttachedTaskHandlerImpl(groundyTask.getId(), groundyTask.getGroupId(),
+                  GroundyService.this.getClass(), receiver, task);
           handlers.add(taskHandler);
         }
       }
